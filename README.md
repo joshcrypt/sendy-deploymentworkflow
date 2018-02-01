@@ -18,3 +18,4 @@ For this setup the Amazon AWS Cloud Environment will be used. This whole design 
 * AWS EC2
 * AWS VPC
 
+![alt text](https://github.com/joshcrypt/sendy-deploymentworkflow/blob/master/DeploymentWorkflow.PNG)
