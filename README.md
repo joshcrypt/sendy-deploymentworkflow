@@ -28,7 +28,9 @@ The overall design for the deployment workflow is as shown in the [figure](https
 The description for the DevOps Tools and Services used to achieve Continuous Integration are explained within this section. The workflow follows the [figure](https://github.com/joshcrypt/sendy-deploymentworkflow/blob/master/DeploymentWorkflow.PNG) shown above in the previous section.
 
 ### Sendy Coders
-The developer/developers working on a feature or fix are responsible for developing, building and deploying code to a centralized repository. This repository is the Git repo and is explained in detail in the next section. Once a Sprint starts, developers and QA collaborate to ensure end to end tests on the feature or fix are without fault before deploying to production. 
+The developer/developers working on a feature or fix are responsible for developing, building and deploying code to a centralized repository. This repository is the Git repo and is explained in detail in the next section. Once a Sprint starts, developers and QA collaborate to ensure end to end tests on the feature or fix are without fault before deploying to production.
+To minimize bugs in the code qualitative analysis and regression and smoke tests need to be done while in the testing phase before pushing to the staging environemt.
+Once the testing phase is proven to be okay, the code should be tested in the staging environment and Non Functional tests done.
 Once the fix/feature is deemed deployable it is deployed to the Git repository. This is the trigger for initiating the next step of the automated continuous deployment.
 
 ###### The steps involved by coder/developers are shown below
@@ -60,7 +62,7 @@ AWS CodeBuild is integral to continuous deployment because it removes the need t
 * CodeBuild packages the code and adds build information and stores it as a docker container image in AWS Elastic Container Registry (ECR)
 
 ### AWS CloudFormation
-AWS CloudFormation is used to automate the creation of AWS services and infrastructure using predefined templates. AWS CloudFormation is an integral part to Sendy's continuous deployemnts because it can be used to update existing environments with new code and it can also be used to spin up new environments with new code in containers or in servers. Once CodeBuild packages the new code in a Docker Containerized Image, CodePipeline starts the update of AWS CloudFormation stack, which has definitions of the Elastic Coud Service.
+AWS CloudFormation is used to automate the creation of AWS services and infrastructure using predefined templates. The template in this contains a fully configure Amazon Virtual Private Cloud environment, with Amazon Elastic Load Balancers, Amazon Elastic Compute Cloud, Amazon Elastic IPs, Amazon Container Service and Amazon COntainer Registry.  AWS CloudFormation is an integral part to Sendy's continuous deployments because it can be used to update existing environments with new code and it can also be used to spin up new environments with new code in containers or in servers. Once CodeBuild packages the new code in a Docker Containerized Image, CodePipeline starts the update of AWS CloudFormation stack, which has definitions of the Elastic Coud Service.
 CloudFormation references the build definition and creates a task to update the ECS Service with the new build information.
 
 ###### The steps involved in the AWS CloudFormationd section are shown below
@@ -69,3 +71,16 @@ CloudFormation references the build definition and creates a task to update the 
 * Cloud Formation is a DevOps tool that is used to automate infrastructure and service creation.
 
 ### AWS Elastic Container Service
+The Docker Container is packaged inside an AWS Elastic Container Service instance. Once CloudFormation creates a task definition to update the stack, it then informs AWS Elastic Container Service to fetch the docker image from AWS Elastic Container registry in order to replace the old task with the new task.
+Once the docker image is deployed in the containerized environment it can then be tested using the serivce URL provided by the CLoudFormation step.
+CodePipeline provides a dashboard to be able to view the deployment steps and stages.
+
+###### The steps involved in the AWS Elastic Container Service section are shown below
+* Amazon CloudFormation creates a task to replace the existing task with a new task
+* Amazon ECS fetches docker image from Amazon ECR and updates it's content
+* Test from service URL to check if the deployment is successful
+* Monitor on the dashboard to view the progress of the deployment.
+
+### Monitoring and Logging
+It is important to ensure monitoring and logging of the deployed changes is done efficiently and across the whole deployment process. This should be done in order to get metrics for comparison and to create a proper baseline for consistency.
+
