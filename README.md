@@ -10,14 +10,15 @@ To achieve successful continuous deployments the whole deployment process needs 
 
 For this setup the Amazon AWS Cloud Environment will be used. The services and tools which will be used include
 * Git Repository
-* AWS Code Pipeline
-* AWS Cloud Formation
-* AWS Code Build
-* AWS Code Deploy
-* AWS Elastic Container Service (ECS)
-* AWS Elastic Cloud Compute (EC2)
-* AWS Virtual Private Cloud (VPC)
-* AWS Elastic Container Registry (ECR)
+* Amazon Code Pipeline
+* Amazon Cloud Formation
+* Amazon Code Build
+* Amazon Code Deploy
+* Amazon Elastic Container Service (ECS)
+* Amazon Elastic Cloud Compute (EC2)
+* Amazon Virtual Private Cloud (VPC)
+* Amazon Elastic Container Registry (ECR)
+* Amazon Route 53
 
 ![alt text](https://github.com/joshcrypt/sendy-deploymentworkflow/blob/master/DeploymentWorkflow.PNG)
 
@@ -71,6 +72,7 @@ CloudFormation references the build definition and creates a task to update the 
 * Cloud Formation is a DevOps tool that is used to automate infrastructure and service creation.
 
 ### AWS Elastic Container Service
+The clustered EC2 instances can be cofigured to Route 53 to have TTLs set to 60 seconds, such that there is no sowntime and the DNS record can ve pointed to the correct cluster.
 The Docker Container is packaged inside an AWS Elastic Container Service instance. Once CloudFormation creates a task definition to update the stack, it then informs AWS Elastic Container Service to fetch the docker image from AWS Elastic Container registry in order to replace the old task with the new task.
 Once the docker image is deployed in the containerized environment it can then be tested using the serivce URL provided by the CLoudFormation step.
 CodePipeline provides a dashboard to be able to view the deployment steps and stages.
@@ -84,3 +86,5 @@ CodePipeline provides a dashboard to be able to view the deployment steps and st
 ### Monitoring and Logging
 It is important to ensure monitoring and logging of the deployed changes is done efficiently and across the whole deployment process. This should be done in order to get metrics for comparison and to create a proper baseline for consistency.
 
+## Summary
+Once coders have developed and tested a fix or a new feature they deploy code to a centralized gihub repository. Once this is done CodePipeline has a poll for checking the most recent changes on the git repository. CodePipeline informs CodeBuild which packages the code and creates a containerized docker image of the code and stores it in the Elastic Container registry repository. CodePipeline then triggers CloudFormation to update the stack by having the Elastic Container Service fetching the image from Elastic Container registry. The deployment can be monitored on the pipeline and also if it successful the change should be tested via the service URL. Amazon ROute53 can be used to set TTLs of 60 minutes pointing to the EC2 instances such that when a deployemnt is done in one cluster the DNS 
