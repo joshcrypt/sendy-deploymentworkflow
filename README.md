@@ -14,9 +14,10 @@ For this setup the Amazon AWS Cloud Environment will be used. This whole design 
 * AWS Cloud Formation
 * AWS Code Build
 * AWS Code Deploy
-* AWS ECS
-* AWS EC2
-* AWS VPC
+* AWS Elastic Container Service (ECS)
+* AWS Elastic Cloud Compute (EC2)
+* AWS Virtual Private Cloud (VPC)
+* AWS Elastic Container Registry (ECR)
 
 ![alt text](https://github.com/joshcrypt/sendy-deploymentworkflow/blob/master/DeploymentWorkflow.PNG)
 
@@ -37,7 +38,7 @@ Once the fix/feature is deemed deployable it is deployed to the Git repository. 
 * The code pushed to the Git repo initiates the automated deployemnt in the AWS CodePipeline
 
 ### GitHub code - Sendy
-The GitHub repo is the centralized repository where developers push their code. Once code has been pushed to the github repository, AWS CodePipeline detects the new deployments and automates the Code Build phase, the deployment to the containerized ECR and ECS environments and the changes can be viewed from the container service URL in Cloud Formation.
+The GitHub repo is the centralized repository where developers push their code. Once code has been pushed to the github repository, AWS CodePipeline detects the new deployments and automates the Code Build phase, the deployment to the containerized Elastic Container Registry and Elastic Container Service environments and the changes can be viewed from the container service URL in Cloud Formation.
 
 ###### The steps involved in the github section are shown below
 * Developers push code to GitHub repository
@@ -45,6 +46,26 @@ The GitHub repo is the centralized repository where developers push their code. 
 * CodePipeline detects any new code and automated deployment to ECS containerized environment.
 
 ### AWS CodePipeline
-The AWS CodePipeline
+The AWS CodePipeline polls the github repository to check if any new code has been checked in. When a new version is found a trigger is kicked in to create a Docker image using CodeBuild in AWS Elastic Container Registry (ECR) using the code from github. The CodePipeline initiates the building of the Docker container from the github code then creates it in AWS ECR, which leads to the atomation of the continuous deployment lifecycle.
 
+###### The steps involved in the AWS CodePipeline section are shown below
+* CodePipeline polls the GitHub repository for any new code.
+* Once it finds code, it initiates the creation of a docker image by triggering CodeBuild which is responsible for this step
 
+### AWS CodeBuild
+AWS CodeBuild is integral to continuous deployment because it removes the need to provision, manage and scale build servers. Once CodePipeline gets the code from the github repository it pushes it to AWS CodeBuild which creates a Docker containerized image of the Code. This image is then packaged and the build information is added to the AWS ECR repository.
+
+###### The steps involved in the AWS CodeBuild section are shown below
+* CodePipeline fetches the code from the github repo and passes it to CodeBuild
+* CodeBuild packages the code and adds build information and stores it as a docker container image in AWS Elastic Container Registry (ECR)
+
+### AWS CloudFormation
+AWS CloudFormation is used to automate the creation of AWS services and infrastructure using predefined templates. AWS CloudFormation is an integral part to Sendy's continuous deployemnts because it can be used to update existing environments with new code and it can also be used to spin up new environments with new code in containers or in servers. Once CodeBuild packages the new code in a Docker Containerized Image, CodePipeline starts the update of AWS CloudFormation stack, which has definitions of the Elastic Coud Service.
+CloudFormation references the build definition and creates a task to update the ECS Service with the new build information.
+
+###### The steps involved in the AWS CloudFormationd section are shown below
+* Upon creation of a packaged Docker Container Image in Elastic Container Registry, CodePipeline initiates the update of Elastic Container Service using CloudFormation. 
+* CloudFormation uses the build information to create a task definition for updating/creating Elastic Container Service.
+* Cloud Formation is a DevOps tool that is used to automate infrastructure and service creation.
+
+### AWS Elastic Container Service
